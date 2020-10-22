@@ -37,12 +37,10 @@
     </div>
 
     <script>
-      function verifyTokenClient() {
-        exp = localStorage.getItem("exp");;
-        if (Date.now() <= exp * 1000) {
-          console.log('true');
+      function verifyTokenClient(exp) {
+        var condition = (Math.floor((new Date).getTime() / 1000)) >= exp;
+        if (condition) {
           localStorage.removeItem("jwt"); //delete expired jwt token from local storage
-          localStorage.removeItem("exp");
           window.location = "/";
         }
       }
@@ -60,18 +58,17 @@
           password: document.getElementById("password").value = "";
           if (res && res.data && res.data.success) {
             const token = res.data.token;
+            const exp = res.data.exp;
             console.log(token);
-            console.log(res.data.exp);
-            //console.log(Date.now()/1000);
+            console.log(exp);
             localStorage.setItem("jwt", token);
-            //localStorage.setItem("exp", res.data.exp);
-            //setTimeout(verifyTokenClient,6000);
+            setInterval(verifyTokenClient,180000, exp);  // check for jwt expiry for every 3 minute : method 2
             getDashboard();
           }
         });
       }
-
-      function resetToLogin(err) {
+ 
+      function resetToLogin(err) {  // reset to root when server responds with error jwt expired : method 1
         if (
           err.response &&
           err.response.data.err &&
